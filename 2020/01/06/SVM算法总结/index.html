@@ -1,0 +1,352 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5"><title>SVM算法总结 | Eckle的个人网站</title><meta name="description" content="SVM算法总结"><meta name="keywords" content="-机器学习"><meta name="author" content="Eckle"><meta name="copyright" content="Eckle"><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/img/favicon.ico"><link rel="preconnect" href="//cdn.jsdelivr.net"><link rel="preconnect" href="https://fonts.googleapis.com" crossorigin><link rel="preconnect" href="//busuanzi.ibruce.info"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="SVM算法总结"><meta name="twitter:description" content="SVM算法总结"><meta name="twitter:image" content="http://yoursite.com/img/ML.jpg"><meta property="og:type" content="article"><meta property="og:title" content="SVM算法总结"><meta property="og:url" content="http://yoursite.com/2020/01/06/SVM%E7%AE%97%E6%B3%95%E6%80%BB%E7%BB%93/"><meta property="og:site_name" content="Eckle的个人网站"><meta property="og:description" content="SVM算法总结"><meta property="og:image" content="http://yoursite.com/img/ML.jpg"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><script src="https://cdn.jsdelivr.net/npm/js-cookie/dist/js.cookie.min.js"></script><script>const autoChangeMode = 'false'
+var t = Cookies.get("theme");
+if (autoChangeMode == '1'){
+const isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches
+const isLightMode = window.matchMedia("(prefers-color-scheme: light)").matches
+const isNotSpecified = window.matchMedia("(prefers-color-scheme: no-preference)").matches
+const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+if (t === undefined){
+  if (isLightMode) activateLightMode()
+  else if (isDarkMode) activateDarkMode()
+  else if (isNotSpecified || hasNoSupport){
+    console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
+    now = new Date();
+    hour = now.getHours();
+    isNight = hour < 6 || hour >= 18
+    isNight ? activateDarkMode() : activateLightMode()
+}
+} else if (t == 'light') activateLightMode()
+else activateDarkMode()
+
+
+} else if (autoChangeMode == '2'){
+  now = new Date();
+  hour = now.getHours();
+  isNight = hour < 6 || hour >= 18
+  if(t === undefined) isNight? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode() 
+} else {
+  if ( t == 'dark' ) activateDarkMode()
+  else if ( t == 'light') activateLightMode()
+}
+
+function activateDarkMode(){
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null){
+    document.querySelector('meta[name="theme-color"]').setAttribute('content','#000')
+  }
+}
+function activateLightMode(){
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null){
+  document.querySelector('meta[name="theme-color"]').setAttribute('content','#fff')
+  }
+}</script><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@latest/css/font-awesome.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><link rel="canonical" href="http://yoursite.com/2020/01/06/SVM%E7%AE%97%E6%B3%95%E6%80%BB%E7%BB%93/"><link rel="next" title="一、1" href="http://yoursite.com/2020/01/06/%E4%B8%80%E3%80%811/"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容:${query}"}},
+  translate: {"defaultEncoding":2,"translateDelay":0,"cookieDomain":"https://wowli-up.github/","msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  bookmark: {
+    title: 'Snackbar.bookmark.title',
+    message_prev: '按',
+    message_next: '键将本页加入书签'
+  },
+  runtime_unit: '天',
+  runtime: true,
+  copyright: undefined,
+  ClickShowText: undefined,
+  medium_zoom: true,
+  fancybox: true,
+  Snackbar: {"bookmark":{"title":"Snackbar.bookmark.title","message_prev":"按","message_next":"键将本页加入书签"},"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#2d3035","position":"bottom-left"},
+  baiduPush: false,
+  isHome: false,
+  isPost: true
+  
+}</script><meta name="generator" content="Hexo 4.2.0"></head><body><header> <div id="page-header"><span class="pull_left" id="blog_name"><a class="blog_title" id="site-name" href="/">Eckle的个人网站</a></span><span class="toggle-menu pull_right close"><a class="site-page"><i class="fa fa-bars fa-fw" aria-hidden="true"></i></a></span><span class="pull_right menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fa fa-list" aria-hidden="true"></i><span> 清单</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/musics/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fa fa-film"></i><span> 电影</span></a></li><li><a class="site-page" href="/books/"><i class="fa-fw fa fa-book"></i><span> 书籍</span></a></li><li><a class="site-page" href="/games/"><i class="fa-fw fa fa-gamepad"></i><span> 游戏</span></a></li></ul></div></div></span><span class="pull_right" id="search_button"><a class="site-page social-icon search"><i class="fa fa-search fa-fw"></i><span> 搜索</span></a></span></div></header><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="/img/Eckle.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">6</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">1</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">1</div></a></div></div></div><hr><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fa fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fa fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fa fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fa fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fa fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fa fa-heart"></i><span> 关于</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fa fa-list" aria-hidden="true"></i><span> 清单</span><i class="fa fa-chevron-down menus-expand" aria-hidden="true"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/musics/"><i class="fa-fw fa fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/movies/"><i class="fa-fw fa fa-film"></i><span> 电影</span></a></li><li><a class="site-page" href="/books/"><i class="fa-fw fa fa-book"></i><span> 书籍</span></a></li><li><a class="site-page" href="/games/"><i class="fa-fw fa fa-gamepad"></i><span> 游戏</span></a></li></ul></div></div></div><div id="mobile-sidebar-toc"><div class="toc_mobile_headline">目录</div><div class="sidebar-toc__content"><ol class="toc_mobile_items"><li class="toc_mobile_items-item toc_mobile_items-level-1"><a class="toc_mobile_items-link" href="#感知机模型"><span class="toc_mobile_items-number">1.</span> <span class="toc_mobile_items-text"> 感知机模型：</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-1"><a class="toc_mobile_items-link" href="#svm支持向量机"><span class="toc_mobile_items-number">2.</span> <span class="toc_mobile_items-text"> SVM(支持向量机)</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#线性可分svm总结"><span class="toc_mobile_items-number">2.1.</span> <span class="toc_mobile_items-text"> 线性可分SVM总结</span></a></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-1"><a class="toc_mobile_items-link" href="#svm的软间隔模型"><span class="toc_mobile_items-number">3.</span> <span class="toc_mobile_items-text"> SVM的软间隔模型</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#svm的软间隔模型算法流程"><span class="toc_mobile_items-number">3.1.</span> <span class="toc_mobile_items-text"> SVM的软间隔模型算法流程：</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#svm的软间隔模型总结"><span class="toc_mobile_items-number">3.2.</span> <span class="toc_mobile_items-text"> SVM的软间隔模型总结</span></a></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-1"><a class="toc_mobile_items-link" href="#非线性可分svm"><span class="toc_mobile_items-number">4.</span> <span class="toc_mobile_items-text"> 非线性可分SVM</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-1"><a class="toc_mobile_items-link" href="#核函数总结"><span class="toc_mobile_items-number">5.</span> <span class="toc_mobile_items-text"> 核函数总结</span></a><ol class="toc_mobile_items-child"><li class="toc_mobile_items-item toc_mobile_items-level-2"><a class="toc_mobile_items-link" href="#svr"><span class="toc_mobile_items-number">5.1.</span> <span class="toc_mobile_items-text"> SVR</span></a></li></ol></li><li class="toc_mobile_items-item toc_mobile_items-level-1"><a class="toc_mobile_items-link" href="#坐标下降上升法原理搬运自httpsblogcsdnnetu010626937articledetails75044343"><span class="toc_mobile_items-number">6.</span> <span class="toc_mobile_items-text"> 坐标下降（上升）法原理(搬运自https:&#x2F;&#x2F;blog.csdn.net&#x2F;u010626937&#x2F;article&#x2F;details&#x2F;75044343)</span></a></li><li class="toc_mobile_items-item toc_mobile_items-level-1"><a class="toc_mobile_items-link" href="#七-smo可略过"><span class="toc_mobile_items-number">7.</span> <span class="toc_mobile_items-text"> 七、SMO（可略过）</span></a></li></ol></div></div></div><div id="body-wrap"><i class="fa fa-arrow-right" id="toggle-sidebar" aria-hidden="true">     </i><div class="auto_open" id="sidebar"><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#感知机模型"><span class="toc-number">1.</span> <span class="toc-text"> 感知机模型：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#svm支持向量机"><span class="toc-number">2.</span> <span class="toc-text"> SVM(支持向量机)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#线性可分svm总结"><span class="toc-number">2.1.</span> <span class="toc-text"> 线性可分SVM总结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#svm的软间隔模型"><span class="toc-number">3.</span> <span class="toc-text"> SVM的软间隔模型</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#svm的软间隔模型算法流程"><span class="toc-number">3.1.</span> <span class="toc-text"> SVM的软间隔模型算法流程：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#svm的软间隔模型总结"><span class="toc-number">3.2.</span> <span class="toc-text"> SVM的软间隔模型总结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#非线性可分svm"><span class="toc-number">4.</span> <span class="toc-text"> 非线性可分SVM</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#核函数总结"><span class="toc-number">5.</span> <span class="toc-text"> 核函数总结</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#svr"><span class="toc-number">5.1.</span> <span class="toc-text"> SVR</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#坐标下降上升法原理搬运自httpsblogcsdnnetu010626937articledetails75044343"><span class="toc-number">6.</span> <span class="toc-text"> 坐标下降（上升）法原理(搬运自https:&#x2F;&#x2F;blog.csdn.net&#x2F;u010626937&#x2F;article&#x2F;details&#x2F;75044343)</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#七-smo可略过"><span class="toc-number">7.</span> <span class="toc-text"> 七、SMO（可略过）</span></a></li></ol></div></div></div><main id="content-outer"><div id="top-container" style="background-image: url(/img/ML.jpg)"><div id="post-info"><div id="post-title"><div class="posttitle">SVM算法总结</div></div><div id="post-meta"><time class="post-meta__date"><i class="fa fa-calendar fa-fw" aria-hidden="true"></i> 发表于 2020-01-06<span class="post-meta__separator">|</span><i class="fa fa-history fa-fw" aria-hidden="true"></i> 更新于 2020-01-06</time><span class="post-meta__separator">|</span><span><i class="fa fa-inbox post-meta__icon fa-fw" aria-hidden="true"></i><a class="post-meta__categories" href="/categories/%E7%AE%97%E6%B3%95/">算法</a></span><div class="post-meta-wordcount"><i class="fa fa-file-word-o post-meta__icon fa-fw" aria-hidden="true"></i><span>字数总计:</span><span class="word-count">170</span><span class="post-meta__separator">|</span><i class="fa fa-clock-o post-meta__icon fa-fw" aria-hidden="true"></i><span>阅读时长: 1 分钟</span><div class="post-meta-pv-cv"><span class="post-meta__separator">|</span><span><i class="fa fa-eye post-meta__icon fa-fw" aria-hidden="true"> </i>阅读量:</span><span id="busuanzi_value_page_pv"></span></div></div></div></div></div><div class="layout layout_post" id="content-inner">   <article id="post"><div class="article-container" id="post-content"><html><head></head><body><h1 id="感知机模型"><a class="markdownIt-Anchor" href="#感知机模型"></a> 感知机模型：</h1>
+<p>感知器模型是SVM、神经网络、深度学习等算法的基础;感知器模型就是试图找到一条直线，能够把所有的“+1”类和“-1”类分隔开，如果是高维空间中，感知器模型寻找的就是一个超平面，能够把所有的二元类别分割开。感知器模型的前提是：数据是线性可分的。</p>
+<p><a href="https://pic2.zhimg.com/80/v2-624de9659125f370026c972f21dcbb69_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-624de9659125f370026c972f21dcbb69_hd.jpg" class="lazyload"></a></p>
+<p>目标是找到一个超平面，即： <a href="https://www.zhihu.com/equation?tex=%5Ctheta_%7B0%7D%2B+%5Ctheta_%7B1%7Dx_%7B1%7D%2B%5Ctheta_%7B0%7D%2B......%2B+%5Ctheta_%7Bn%7D%2B+%5Ctheta_%7B1%7Dx_%7Bn%7D%3D%5Ctheta%5Ccdot+x+%3D+0" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=%5Ctheta_%7B0%7D%2B+%5Ctheta_%7B1%7Dx_%7B1%7D%2B%5Ctheta_%7B0%7D%2B......%2B+%5Ctheta_%7Bn%7D%2B+%5Ctheta_%7B1%7Dx_%7Bn%7D%3D%5Ctheta%5Ccdot+x+%3D+0" class="lazyload"></a></p>
+<p>感知器模型为: <a href="https://www.zhihu.com/equation?tex=%5Ctilde%7By%7D%3D+%5Cbegin%7Bcases%7D++%2B1+%2C%5Ctheta+%5Ccdot+x+%3E+0+%5C%5C%5B2ex%5D++-1%2C%5Ctheta+%5Ccdot+x+%3C+0+%5C%5C%5B2ex%5D+++%5Cend%7Bcases%7D++" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=%5Ctilde%7By%7D%3D+%5Cbegin%7Bcases%7D++%2B1+%2C%5Ctheta+%5Ccdot+x+%3E+0+%5C%5C%5B2ex%5D++-1%2C%5Ctheta+%5Ccdot+x+%3C+0+%5C%5C%5B2ex%5D+++%5Cend%7Bcases%7D++" class="lazyload"></a></p>
+<p>感知器模型正确分类（预测和实际类别一致）：yθx>0（y为实际值，θx为预测值），错误分类（预测和实际类别不一致）：yθx<0；所以我们可以定义我们的损失函数为：期望使分类错误的所有样本(k条样本)到超平面的距离之和最小。</p>
+<p>即：<a href="https://www.zhihu.com/equation?tex=L++%3D%5Cfrac%7B%7C%5Ctheta%5Ccdot+x_%7Bi%7D%7C%7D%7B%7C%7C+%5Ctheta%7C%7C_%7B2%7D%7D%3D%5Csum_%7Bi%3D1%7D%5E%7Bk%7D%7B%5Cfrac%7B-y%5E%7B%28i%29%7D%5Ctheta%5Ccdot+x%5E%7B%28i%29%7D%7D%7B%7C%7C+%5Ctheta+%7C%7C_%7B2%7D%7D%7D" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=L++%3D%5Cfrac%7B%7C%5Ctheta%5Ccdot+x_%7Bi%7D%7C%7D%7B%7C%7C+%5Ctheta%7C%7C_%7B2%7D%7D%3D%5Csum_%7Bi%3D1%7D%5E%7Bk%7D%7B%5Cfrac%7B-y%5E%7B%28i%29%7D%5Ctheta%5Ccdot+x%5E%7B%28i%29%7D%7D%7B%7C%7C+%5Ctheta+%7C%7C_%7B2%7D%7D%7D" class="lazyload"></a> (去绝对值符号，分类错误<0,分子加”—“)</p>
+<p>简化损失函数：因为此时分子和分母中都包含了θ值，当分子扩大N倍的时候，分母也会随之扩大，也就是说分子和分母之间存在倍数关系，所以可以固定分子或者分母为1，然后求另一个即分子或者分母的倒数的最小化作为损失函数，简化后的损失函数为（分母为1）:</p>
+<p>简化损失函数：因 为此时分子和分母中都包含了θ值，当分子扩大N倍的时候，分母也会随之扩大，也就是说分子和分母之间存 在倍数关系，所以可以固定分子或者分母为1，然后求另一个即分子或者分母的倒数的最小化作为损失函数，简化后的损失函数为（分母为1）: <a href="https://www.zhihu.com/equation?tex=L+%3D+-+%5Csum_%7Bi+%3D+1%7D%5E%7Bk%7Dy%5E%7B%28i%29%7D%5Ctheta%5Ccdot+x%5E%7B%28i%29%7D" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=L+%3D+-+%5Csum_%7Bi+%3D+1%7D%5E%7Bk%7Dy%5E%7B%28i%29%7D%5Ctheta%5Ccdot+x%5E%7B%28i%29%7D" class="lazyload"></a> (即 <a href="https://www.zhihu.com/equation?tex=%5Ctheta+%5Ccdot+x+%3D%7C%5Ctheta%7C%2A%7Cx%7C%2Acos%5Calpha" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=%5Ctheta+%5Ccdot+x+%3D%7C%5Ctheta%7C%2A%7Cx%7C%2Acos%5Calpha" class="lazyload"></a> ,分子分母相抵消，模长对结果无影响)。</p>
+<p>直接使用梯度下降法就可以对损失函数求解，不过由于这里的k是分类错误的样本点集合，不是固定的，所以我们不能使用批量梯度下降法(BGD)求解，只能使用随机梯度下降(SGD)或者小批量梯度下降(MBGD)；一般在感知器模型中使用SGD来求解。</p>
+<hr>
+<h1 id="svm支持向量机"><a class="markdownIt-Anchor" href="#svm支持向量机"></a> SVM(支持向量机)</h1>
+<p>支持向量机(Support Vecor Machine, SVM)本身是一个二元分类算法，是对感知器算法模型的一种扩展，现在的SVM算法支持线性分类和非线性分类的分类应用，并且也能够直接将SVM应用于回归应用中，同时通过OvR或者OvO的方式我们也可以将SVM应用在多元分类领域中。在不考虑集成学习算法，不考虑特定的数据集的时候，在分类算法中SVM可以说是特别优秀的。</p>
+<p><a href="https://pic3.zhimg.com/80/v2-74d81e6bced6d75cf21eb04753a57e6e_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-74d81e6bced6d75cf21eb04753a57e6e_hd.jpg" class="lazyload"></a></p>
+<p>在感知器模型中，算法是在数据中找出一个划分超平面，让尽可能多的数据分布在这个平面的两侧，从而达到分类的效果，但是在实际数据中这个符合我们要求的超平面是可能存在多个的。</p>
+<p><a href="https://pic1.zhimg.com/80/v2-34a9bf1b868a6880b38d2a932745a098_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-34a9bf1b868a6880b38d2a932745a098_hd.jpg" class="lazyload"></a></p>
+<p>SVM思想：在感知器模型中，我们可以找到多个可以分类的超平面将数据分开，并且优化时希望所有的点(预测正确的点)都离超平面尽可能的远，但是实际上离超平面足够远的点基本上都是被正确分类的，所以这个是没有意义的；反而比较关心那些离超平面很近的点，这些点比较容易分错。所以说我们<strong>只要让离超平面比较近的点尽可能的远离这个超平面</strong>，那么我们的模型分类效果应该就会比较不错。SVM其实就是这个思想。</p>
+<p><a href="https://pic1.zhimg.com/80/v2-b98fb3e59d80593346f14ab66fa0f808_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-b98fb3e59d80593346f14ab66fa0f808_hd.jpg" class="lazyload"></a></p>
+<p>名词概念：</p>
+<ul>
+<li>线性可分(Linearly Separable)：在数据集中，如果可以找出一个超平面，将两组数据分开，那么这个数据集叫做线性可分数据。</li>
+<li>线性不可分(Linear Inseparable)：在数据集中，没法找出一个超平面，能够将两组数据分开，那么这个数据集就叫做线性不可分数据。</li>
+<li>分割超平面(Separating Hyperplane)：将数据集分割开来的直线/平面叫做分割超平面。</li>
+<li>支持向量(Support Vector)：离分割超平面最近的那些点叫做支持向量。</li>
+<li>间隔(Margin)：支持向量数据点到分割超平面的距离称为间隔。</li>
+</ul>
+<p>支持向量到超平面的距离为：在SVM中支持向量到超平面的函数距离一般设置为1</p>
+<p>∵ <a href="https://www.zhihu.com/equation?tex=W%5E%7BT%7D+%2B+b+%3D+%5Cpm1" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=W%5E%7BT%7D+%2B+b+%3D+%5Cpm1" class="lazyload"></a></p>
+<p>∵ <a href="https://www.zhihu.com/equation?tex=+y%5Cin+%5Cleft%5C%7B+%2B1%2C-1+%5Cright%5C%7D" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=+y%5Cin+%5Cleft%5C%7B+%2B1%2C-1+%5Cright%5C%7D" class="lazyload"></a></p>
+<p>∴ <a href="https://www.zhihu.com/equation?tex=%5Cfrac%7B%7C%28W%5E%7BT%7D%2Bb%29%7C%7D%7B%7C%7CW%7C%7C_%7B2%7D%7D%3D%5Cfrac%7B1%7D%7B%7C%7CW%7C%7C_%7B2%7D%7D" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=%5Cfrac%7B%7C%28W%5E%7BT%7D%2Bb%29%7C%7D%7B%7C%7CW%7C%7C_%7B2%7D%7D%3D%5Cfrac%7B1%7D%7B%7C%7CW%7C%7C_%7B2%7D%7D" class="lazyload"></a></p>
+<p><a href="https://pic1.zhimg.com/80/v2-24ef088e0b602c5df7fa8b668fe3ba64_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-24ef088e0b602c5df7fa8b668fe3ba64_hd.jpg" class="lazyload"></a></p>
+<p>SVM模型是让所有的分类点在各自类别的支持向量远离超平面的一侧，同时要求支持向量尽可能的远离这个超平面，用数学公式表示如下：</p>
+<p>W^{T}=(w_1,w_2,…,w_n)</p>
+<p><a href="https://www.zhihu.com/equation?tex=%7C%7CW%7C%7C_2+%3D+%5Csqrt%7Bw_1%5E2%2Bw_2%5E2%2B...%2Bw_n%5E2%7D" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=%7C%7CW%7C%7C_2+%3D+%5Csqrt%7Bw_1%5E2%2Bw_2%5E2%2B...%2Bw_n%5E2%7D" class="lazyload"></a></p>
+<p><a href="https://www.zhihu.com/equation?tex=%5Cmax_%7Bw%2Cb%7D%5Cfrac%7B1%7D%7B%7C%7CW%7C%7C_2%7D" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=%5Cmax_%7Bw%2Cb%7D%5Cfrac%7B1%7D%7B%7C%7CW%7C%7C_2%7D" class="lazyload"></a></p>
+<p><a href="https://www.zhihu.com/equation?tex=s.t%3Ay%5E%7B%28i%29%7D%28W%5E%7B%28T%29%7D%2Bb%29%5Cgeq+1%2Ci+%3D1%2C2%2C...%2Cm" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=s.t%3Ay%5E%7B%28i%29%7D%28W%5E%7B%28T%29%7D%2Bb%29%5Cgeq+1%2Ci+%3D1%2C2%2C...%2Cm" class="lazyload"></a></p>
+<p>(s.t: 指”受限制于…“)</p>
+<p><a href="https://www.zhihu.com/equation?tex=%5Coverrightarrow%7B%E4%BC%98%E5%8C%96%E9%97%AE%E9%A2%98%E7%AD%89%E4%BB%B7%E4%BA%8E%7D" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=%5Coverrightarrow%7B%E4%BC%98%E5%8C%96%E9%97%AE%E9%A2%98%E7%AD%89%E4%BB%B7%E4%BA%8E%7D" class="lazyload"></a> <a href="https://www.zhihu.com/equation?tex=%5Cmin_%7Bw%2Cb%7D%5Cfrac%7B1%7D%7B2%7D%7B%7C%7CW%7C%7C_2%5E2%7D" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=%5Cmin_%7Bw%2Cb%7D%5Cfrac%7B1%7D%7B2%7D%7B%7C%7CW%7C%7C_2%5E2%7D" class="lazyload"></a> (对偶问题）</p>
+<p><a href="https://www.zhihu.com/equation?tex=s.t%3Ay%5E%7B%28i%29%7D%28W%5E%7B%28T%29%7D%2Bb%29%5Cgeq+1%2Ci+%3D1%2C2%2C...%2Cm" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=s.t%3Ay%5E%7B%28i%29%7D%28W%5E%7B%28T%29%7D%2Bb%29%5Cgeq+1%2Ci+%3D1%2C2%2C...%2Cm" class="lazyload"></a></p>
+<p>则SVM原始目标函数/损失函数为：</p>
+<p><a href="https://www.zhihu.com/equation?tex=J%28W%29%3D%5Cfrac%7B1%7D%7B2%7D%7B%7C%7CW%7C%7C_2%5E2%7D" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=J%28W%29%3D%5Cfrac%7B1%7D%7B2%7D%7B%7C%7CW%7C%7C_2%5E2%7D" class="lazyload"></a> <a href="https://www.zhihu.com/equation?tex=%5Coverrightarrow%7B%E4%BC%98%E5%8C%96%E7%9B%AE%E6%A0%87%7D+" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=%5Coverrightarrow%7B%E4%BC%98%E5%8C%96%E7%9B%AE%E6%A0%87%7D+" class="lazyload"></a> <a href="https://www.zhihu.com/equation?tex=w%5E%2A%2Cb%5E%2A+%3D%5Cmin_%7Bw%2Cb%7DJ%28w%29" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=w%5E%2A%2Cb%5E%2A+%3D%5Cmin_%7Bw%2Cb%7DJ%28w%29" class="lazyload"></a></p>
+<p><a href="https://www.zhihu.com/equation?tex=s.t%3Ay%5E%7B%28i%29%7D%28W%5E%7B%28T%29%7D%2Bb%29%5Cgeq+1%2Ci+%3D1%2C2%2C...%2Cm" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=s.t%3Ay%5E%7B%28i%29%7D%28W%5E%7B%28T%29%7D%2Bb%29%5Cgeq+1%2Ci+%3D1%2C2%2C...%2Cm" class="lazyload"></a></p>
+<p>将此时的目标函数和约束条件使用KKT条件转换为拉格朗日函数，从而转换为无约束的优化函数。</p>
+<p><a href="https://pic3.zhimg.com/80/v2-02cb85bf58d3c9bd7e8468bf9e316aa6_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-02cb85bf58d3c9bd7e8468bf9e316aa6_hd.jpg" class="lazyload"></a></p>
+<p>引入拉格朗日乘子后，优化目标变成：</p>
+<p><a href="https://pic4.zhimg.com/80/v2-6a43946ee01a9fa39158a042a9b43057_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-6a43946ee01a9fa39158a042a9b43057_hd.jpg" class="lazyload"></a>g(x)小于等于0 当L取最大值 g(x)等于0 消去g(x) KKT条件分析</p>
+<p>根据拉格朗日对偶化特性，将该优化目标转换为等价的对偶问题来求解，从而优化目标变成：</p>
+<p><a href="https://pic1.zhimg.com/80/v2-fff56cdc72e5c16d06562fb521d94f68_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-fff56cdc72e5c16d06562fb521d94f68_hd.jpg" class="lazyload"></a></p>
+<p>所以对于该优化函数而言，可以先求优化函数对于w和b的极小值，然后再求解对于拉格朗日乘子β的极大值。</p>
+<p>首先求让函数L极小化的时候w和b的取值，这个极值可以直接通过对函数L分别求w和b的偏导数得到：</p>
+<p><a href="https://pic2.zhimg.com/80/v2-f7a305ac6d94f52143db6001a2cfc851_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-f7a305ac6d94f52143db6001a2cfc851_hd.jpg" class="lazyload"></a></p>
+<p>将求解出来的w和b带入优化函数L中，定义优化之后的函数如下：</p>
+<p><a href="https://pic2.zhimg.com/80/v2-18d648a84ac7cdb4f1d2ffd497bcb795_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-18d648a84ac7cdb4f1d2ffd497bcb795_hd.jpg" class="lazyload"></a></p>
+<p>通过对w、b极小化后，我们最终得到的优化函数只和β有关，所以此时我们可以直接极大化我们的优化函数，得到β的值，从而可以最终得到w和b的值。β值的求解使用SMO算法</p>
+<p><a href="https://pic1.zhimg.com/80/v2-cd158ebb1f823326173942c2f9f7108c_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-cd158ebb1f823326173942c2f9f7108c_hd.jpg" class="lazyload"></a></p>
+<p>假设存在最优解β*； 根据w、b和β的关系，可以分别计算出对应的w值和b值(一般使用所有支持向量的计算均值来作为实际的b值)；</p>
+<p><a href="https://pic1.zhimg.com/80/v2-06bce1ace7a3b98dffe7701e4bc72df0_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-06bce1ace7a3b98dffe7701e4bc72df0_hd.jpg" class="lazyload"></a></p>
+<p>这里的(xs,ys)即支持向量，根据KKT条件中的对偶互补条件(松弛条件约束)，支持向量必须满足一下公式：</p>
+<p><a href="https://pic1.zhimg.com/80/v2-76a71adf17a85bc6b56c95182da3861c_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-76a71adf17a85bc6b56c95182da3861c_hd.jpg" class="lazyload"></a></p>
+<p>2.线性可分SVM算法流程：</p>
+<ul>
+<li>输入线性可分的m个样本数据{(x1,y1),(x2,y2),…,(xm,ym)}，其中x为n维的特征向量，y为二元输出，取值为+1或者-1；SVM模型输出为参数w、b以及分类决策函数。</li>
+<li>构造约束优化问题；</li>
+</ul>
+<p><a href="https://pic3.zhimg.com/80/v2-2fb844dd35ea9e4749f487155febbdce_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-2fb844dd35ea9e4749f487155febbdce_hd.jpg" class="lazyload"></a></p>
+<p>使用SMO算法求出上式优化中对应的最优解β*；</p>
+<ul>
+<li>找出所有的支持向量集合S;</li>
+</ul>
+<p><a href="https://pic3.zhimg.com/80/v2-db35ea6da50a013d1cda1f7ea4be5db2_hd.png" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-db35ea6da50a013d1cda1f7ea4be5db2_hd.png" class="lazyload"></a></p>
+<ul>
+<li>更新参数w*、b*的值；</li>
+</ul>
+<p><a href="https://pic2.zhimg.com/80/v2-52855c337fa0a411e6874812f63b875d_hd.png" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-52855c337fa0a411e6874812f63b875d_hd.png" class="lazyload"></a></p>
+<ul>
+<li>构建最终的分类器；</li>
+</ul>
+<p><a href="https://pic3.zhimg.com/80/v2-4e99183e9f88171656c5b96946d0bdea_hd.png" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-4e99183e9f88171656c5b96946d0bdea_hd.png" class="lazyload"></a></p>
+<h2 id="线性可分svm总结"><a class="markdownIt-Anchor" href="#线性可分svm总结"></a> 线性可分SVM总结</h2>
+<p>\1. 要求数据必须是线性可分的；</p>
+<p>\2. 纯线性可分的SVM模型对于异常数据的预测可能会不太准；</p>
+<p>\3. 对于线性可分的数据，线性SVM分类器的效果非常不错。</p>
+<h1 id="svm的软间隔模型"><a class="markdownIt-Anchor" href="#svm的软间隔模型"></a> SVM的软间隔模型</h1>
+<p>线性可分SVM中要求数据必须是线性可分的，才可以找到分类的超平面，但是有的时候线性数据集中存在少量的异常点，由于这些异常点导致了数据集不能够线性划分；直白来讲就是：正常数据本身是线性可分的，但是由于存在异常点数据，导致数据集不能够线性可分；</p>
+<p><a href="https://pic4.zhimg.com/80/v2-57f4e89f38c95bc52155d9a9c4d42a83_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-57f4e89f38c95bc52155d9a9c4d42a83_hd.jpg" class="lazyload"></a></p>
+<p>如果线性数据中存在异常点导致没法直接使用SVM线性分割模型的时候，我们可以通过引入软间隔的概念来解决这个问题；</p>
+<p>硬间隔：可以认为线性划分SVM中的距离度量就是硬间隔，在线性划分SVM中，要求函数距离一定是大于1的，最大化硬间隔条件为：</p>
+<p><a href="https://pic1.zhimg.com/80/v2-058d1967d7f0d71469dd0a9b44e0e4e8_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-058d1967d7f0d71469dd0a9b44e0e4e8_hd.jpg" class="lazyload"></a></p>
+<p>软间隔：SVM对于训练集中的每个样本都引入一个松弛因子(ξ)，使得函数距离加上松弛因子后的值是大于等于1；这表示相对于硬间隔，对样本到超平面距离的要求放松了。(引入松弛因子(ξ))</p>
+<p><a href="https://pic1.zhimg.com/80/v2-81f1775aeb8eacd4a0f51abd0c80752c_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-81f1775aeb8eacd4a0f51abd0c80752c_hd.jpg" class="lazyload"></a></p>
+<p>松弛因子(ξ)越大，表示样本点离超平面越近，如果松弛因子大于1，那么表示允许该样本点分错，所以说加入松弛因子是有成本的，过大的松弛因子可能会导致模型分类错误，所以最终的目标函数就转换成为：</p>
+<p><a href="https://pic4.zhimg.com/80/v2-e63000f5acfb29f7ca37250392c46be7_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-e63000f5acfb29f7ca37250392c46be7_hd.jpg" class="lazyload"></a>注：函数中的C&amp;amp;amp;amp;amp;amp;amp;amp;amp;gt;0是惩罚参数，是一个超参数，类似L1/L2 norm的参数；C越大表示对误分类的惩罚越大，也就是越不允许存在分错的样本；C越小表示对误分类的惩罚越小， 也就是表示允许更多的分错样本存在；C值的给定需要调参。</p>
+<p>同线性可分SVM，根据KKT条件构造软间隔最大化的约束问题对应的拉格朗日函数如下：</p>
+<p><a href="https://pic4.zhimg.com/80/v2-ddf2017f97eb62e7cb8ff4aee842171f_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-ddf2017f97eb62e7cb8ff4aee842171f_hd.jpg" class="lazyload"></a></p>
+<p>从而将我们的优化目标函数转换为：</p>
+<p><a href="https://pic4.zhimg.com/80/v2-6dd10648ce3fe36aef7e6e93aba6d847_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-6dd10648ce3fe36aef7e6e93aba6d847_hd.jpg" class="lazyload"></a></p>
+<p>优化目标同样满足KKT条件，所以使用拉格朗日对偶将优化问题转换为等价的对偶问题：</p>
+<p><a href="https://pic1.zhimg.com/80/v2-18bb582ca922a2650aacc0acbd4e42a0_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-18bb582ca922a2650aacc0acbd4e42a0_hd.jpg" class="lazyload"></a></p>
+<p>先求优化函数对于w、b、ξ的极小值，这个可以通过分别对优化函数L求w、b、ξ的偏导数得，从而可以得到w、b、ξ关于β和μ之间的关系。</p>
+<p><a href="https://pic1.zhimg.com/80/v2-9e698440e94c50fdb44bc99485f7e378_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-9e698440e94c50fdb44bc99485f7e378_hd.jpg" class="lazyload"></a></p>
+<p>将w、b、ξ的值带入L函数中，就可以消去优化函数中的w、b、ξ，定义优化之后的函数如下：</p>
+<p><a href="https://pic4.zhimg.com/80/v2-5ea9e711795f161aeb9ae2efa236dc4b_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-5ea9e711795f161aeb9ae2efa236dc4b_hd.jpg" class="lazyload"></a></p>
+<p>最终优化后的目标函数/损失函数和线性可分SVM模型基本一样，除了约束条件不同而已， 也就是说也可以使用SMO算法来求解。</p>
+<p><a href="https://pic1.zhimg.com/80/v2-abb262a8a47df33a2df066417e9bdc3c_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-abb262a8a47df33a2df066417e9bdc3c_hd.jpg" class="lazyload"></a></p>
+<ul>
+<li>在硬间隔最大化的时候，支持向量比较简单，就是离超平面的函数距离为1的样本点就是支持向量。</li>
+<li>在软间隔中，根据KKT条件中的对偶互补条件: β(1-ξ-y(wx+b))=0和μ(-ξ)=0，以及C-β-μ=0；从而有：</li>
+<li>当0<βi≤C的时候，并且ξi=0的样本点均是支持向量(即所有的0<βi<c)。即满足|wx+b|=1的所有样本均是支持向量。(取等号时，所有样本都分对，不考虑 第二个kkt条件)< li>
+</c)。即满足|wx+b|=1的所有样本均是支持向量。(取等号时，所有样本都分对，不考虑></li><li>当0<βi<c对应的样本就是支持向量。< li>
+</c对应的样本就是支持向量。<></li><li>注：软间隔和硬间隔中的支持向量的规则是一样的；</li>
+<li><a href="https://www.zhihu.com/equation?tex=%E4%B8%BE%E4%BE%8B%EF%BC%9Ax_1%3A%5Cbeta_1%3D%5Cfrac%7Bc%7D%7B2%7D%3Bx_2%3A%5Cbeta_1%3DC%3Bx_3%3A%5Cbeta_1%3D0" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=%E4%B8%BE%E4%BE%8B%EF%BC%9Ax_1%3A%5Cbeta_1%3D%5Cfrac%7Bc%7D%7B2%7D%3Bx_2%3A%5Cbeta_1%3DC%3Bx_3%3A%5Cbeta_1%3D0" class="lazyload"></a> 则x1是支持变量</li>
+</ul>
+<p><a href="https://pic4.zhimg.com/80/v2-985576a38c3462b71dea0fdcb9399a5f_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-985576a38c3462b71dea0fdcb9399a5f_hd.jpg" class="lazyload"></a></p>
+<h2 id="svm的软间隔模型算法流程"><a class="markdownIt-Anchor" href="#svm的软间隔模型算法流程"></a> SVM的软间隔模型算法流程：</h2>
+<p>输入线性可分的m个样本数据{(x1,y1),(x2,y2),…,(xm,ym)}，其中x为n维的特征向量，y为二元输出，取值为+1或者-1；SVM模型输出为参数w、b以及分类决策函数。</p>
+<p>step 1:选择一个惩罚系数C>0，构造约束优化问题；</p>
+<p><a href="https://pic2.zhimg.com/80/v2-416b040899ba4f9baeb36ae3edc20459_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-416b040899ba4f9baeb36ae3edc20459_hd.jpg" class="lazyload"></a></p>
+<ul>
+<li>Step2:使用SMO算法求出上式优化中对应的最优解β*；</li>
+<li>step3:找出所有的支持向量集合S;</li>
+</ul>
+<p><a href="https://pic4.zhimg.com/80/v2-41de52616f86fef3c258acea2e8f053b_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-41de52616f86fef3c258acea2e8f053b_hd.jpg" class="lazyload"></a></p>
+<ul>
+<li>step4:更新参数w*、b*的值；</li>
+</ul>
+<p><a href="https://pic2.zhimg.com/80/v2-15d6fd74fc0e06eafe0fd45684ae0a65_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-15d6fd74fc0e06eafe0fd45684ae0a65_hd.jpg" class="lazyload"></a></p>
+<ul>
+<li>step5:构建最终的分类器</li>
+</ul>
+<p><a href="https://pic3.zhimg.com/80/v2-4e99183e9f88171656c5b96946d0bdea_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-4e99183e9f88171656c5b96946d0bdea_hd.jpg" class="lazyload"></a></p>
+<h2 id="svm的软间隔模型总结"><a class="markdownIt-Anchor" href="#svm的软间隔模型总结"></a> SVM的软间隔模型总结</h2>
+<ul>
+<li>\1. 可以解决线性数据中携带异常点的分类模型构建的问题；</li>
+<li>\2. 通过引入惩罚项系数(松弛因子)，可以增加模型的泛化能力，即鲁棒性；</li>
+<li>\3. 如果给定的惩罚项系数C越小，表示在模型构建的时候，就允许存在越多的分类错误的样本， 也就表示此时模型的准确率会比较低；如果惩罚项系数越大，表示在模型构建的时候，就越不允许存在分类错误的样本，也就表示此时模型的准确率会比较高。</li>
+</ul>
+<h1 id="非线性可分svm"><a class="markdownIt-Anchor" href="#非线性可分svm"></a> 非线性可分SVM</h1>
+<p>不管是线性可分SVM还是加入惩罚系数后的软间隔线性可分SVM其实都要求数据本身是线性可分的，对于完全不可以线性可分的数据，这两种算法模型就没法解决这个问题了</p>
+<p><a href="https://pic1.zhimg.com/80/v2-f8f67063f27e49b71c616cd8b0ff1768_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-f8f67063f27e49b71c616cd8b0ff1768_hd.jpg" class="lazyload"></a></p>
+<p>结合多项式回归在处理非线性可分数据时候的作用，在SVM的线性不可分的数据上，如果将数据映射到高维空间中，那么数据就会变成线性可分的，从而就可以使用线性可分SVM模型或者软间隔线性可分SVM模型。也就是说，对于线性不可分SVM模型来讲，重点在于低维特征数据到高维特征数据之间的映射。</p>
+<p>定义一个从低维特征空间到高维特征空间的映射函数Ф，非线性可分SVM的优化目标函数：</p>
+<p><a href="https://pic2.zhimg.com/80/v2-75f510cb89c8c361c77eb1160299ae35_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-75f510cb89c8c361c77eb1160299ae35_hd.jpg" class="lazyload"></a></p>
+<p>可以看到的是，只需要将原来的低维空间中的两个向量的点积转换为高维空间中两个向量的点积即可。</p>
+<p><strong>问题</strong>：这样一来问题就解决了吗？似乎是的：拿到非线性数据，就找一个映射，然后一股脑把原来的数据映射到新空间中，再做线性 SVM 即可。不过事实上没有这么简单！其实刚才的方法稍想一下就会发现有问题：在最初的例子里做了一个二阶多项式的转换，对一个二维空间做映射，选择的新空间是原始空间的所有一阶和二阶的组合，得到了5个维度；如果原始空间是三维，那么我们会得到9维的新空间；如果原始空间是n维，那么我们会得到一个n(n+3)/2维的新空间**；这个数目是呈爆炸性增长的，这给计算带来了非常大的困难，而且如果遇到无穷维的情况，就根本无从计算。**</p>
+<p><strong>2.核函数</strong></p>
+<p>假设函数Ф是一个从低维特征空间到高维特征空间的一个映射，那么如果存在函数K(x,z), 对于任意的低维特征向量x和z，都有：</p>
+<p><a href="https://pic3.zhimg.com/80/v2-b4a8dff1556c831f44ced2b4b8a68bb2_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-b4a8dff1556c831f44ced2b4b8a68bb2_hd.jpg" class="lazyload"></a></p>
+<p>称函数K(x,z)为核函数(kernal function)：在低维空间上的计算值等价于向量做维度扩展后的点乘的结果。 核函数在解决线性不可分问题的时候，采取的方式是：使用低维特征空间上的计算来避免在高维特征空间中向量内积的恐怖计算量；也就是说此时SVM模型可以应用在高维特征空间中数据可线性分割的优点，同时又避免了引入这个高维特征空间恐怖的内积计算量。</p>
+<p>即：用低维空间中少的内积的计算量来让模型具有高维空间中的线性可分的优点。</p>
+<p><strong>例</strong>：，设两个向量<a href="https://www.zhihu.com/equation?tex=x_1%3D%28%5Cmu_1%2C%5Cmu_2%29%5ET" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=x_1%3D%28%5Cmu_1%2C%5Cmu_2%29%5ET" class="lazyload"></a> 和<a href="https://www.zhihu.com/equation?tex=x_2%3D%28%5Ceta_1%2C%5Ceta_2%29%5ET" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=x_2%3D%28%5Ceta_1%2C%5Ceta_2%29%5ET" class="lazyload"></a>，而即是到前面说的五维空间的映射，因此映射过后的内积为：</p>
+<p><a href="https://pic4.zhimg.com/80/v2-4b2c15ae39b22357516477bc75f4153f_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-4b2c15ae39b22357516477bc75f4153f_hd.jpg" class="lazyload"></a></p>
+<p>而同时我们可以发现有一下公式</p>
+<p><a href="https://pic2.zhimg.com/80/v2-f39d10df0eef97e8fca010239386e89d_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-f39d10df0eef97e8fca010239386e89d_hd.jpg" class="lazyload"></a></p>
+<p>可以发现两者之间非常相似，所以我们只要乘上一个相关的系数，就可以让这两个式子的值相等，这样不就将五维空间的一个内积转换为两维空间的内积的运算。</p>
+<p>现有有两个两维的向量，进行二阶多项式扩展，然后进行内积计算，这个时候映射高维后计算的计算量为：11次乘法+4次加法；采用近似计算的计算量为：3次乘法+2次加法；采用加系数后的近似计算的计算量为：4次乘法+2次加法；</p>
+<p><a href="https://pic4.zhimg.com/80/v2-43856572c820569884f1422d9f67b4e7_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-43856572c820569884f1422d9f67b4e7_hd.jpg" class="lazyload"></a></p>
+<p><a href="https://pic3.zhimg.com/80/v2-7c7d56214ee04cc8877e77e553b5f2d6_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-7c7d56214ee04cc8877e77e553b5f2d6_hd.jpg" class="lazyload"></a></p>
+<h1 id="核函数总结"><a class="markdownIt-Anchor" href="#核函数总结"></a> 核函数总结</h1>
+<p>\1. 核函数可以自定义；核函数必须是正定核函数，即Gram矩阵是半正定矩阵；</p>
+<p>\2. 核函数的价值在于它的效果相当于将特征进行从低维到高维的转换，但核函数它是在低维空间上的计算，而将实质上的分类效果表现在了高维上，也就如上文所说的避免了直接在高维空间中的复杂计算；</p>
+<p>\3. 通过核函数，可以将非线性可分的数据转换为线性可分数据；</p>
+<p><a href="https://pic3.zhimg.com/80/v2-1329d1727de95e807778d939a0be684e_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-1329d1727de95e807778d939a0be684e_hd.jpg" class="lazyload"></a></p>
+<h2 id="svr"><a class="markdownIt-Anchor" href="#svr"></a> SVR</h2>
+<p>做回归用，了解即可</p>
+<h1 id="坐标下降上升法原理搬运自httpsblogcsdnnetu010626937articledetails75044343"><a class="markdownIt-Anchor" href="#坐标下降上升法原理搬运自httpsblogcsdnnetu010626937articledetails75044343"></a> 坐标下降（上升）法原理(搬运自<a href="https://link.zhihu.com/?target=https%3A//blog.csdn.net/u010626937/article/details/75044343">https://blog.csdn.net/u010626937/article/details/75044343</a>)</h1>
+<p>假设要求解下面的优化问题：</p>
+<p><a href="https://pic2.zhimg.com/80/v2-86fdda7492b0e91d559074c7c3504b15_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-86fdda7492b0e91d559074c7c3504b15_hd.jpg" class="lazyload"></a></p>
+<p>在这里，我们需要求解m个变量αi，一般来说是通过梯度下降（这里是求最大值，所以应该叫上升）等算法来求解，每一次迭代对所有m个变量αi也就是α向量进行一次性优化。（这里指的是一个向量的所有分量）。通过每次迭代中的误差调整α向量中每个元素的值。而坐标上升法（坐标上升与坐标下降可以看做是一对，坐标上升是用来求解max最优化问题，坐标下降用于求min最优化问题）的思想是每次迭代只调整一个变量αi的值，其他变量的值在这次迭代中固定不变。(这里指的是一个向量中的一个分量)。</p>
+<p><a href="https://pic3.zhimg.com/80/v2-0a76ca02d7aeca50e12f87d8768e23fa_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-0a76ca02d7aeca50e12f87d8768e23fa_hd.jpg" class="lazyload"></a></p>
+<p>最里面语句的意思是固定除αi之外的所有αj(i不等于j)，这时W可看作只是关于αi的函数，那么直接对αi求导优化即可。这里我们进行最大化求导的顺序i是从1到m，可以通过更改优化顺序来使W能够更快地增加并收敛。如果W在内循环中能够很快地达到最优，那么坐标上升法会是一个很高效的求极值方法。</p>
+<p>用个二维的例子来说明下坐标下降法：我们需要寻找f(x,y)=x2+xy+y2的最小值处的(x*, y*)，也就是下图的F*点的地方.</p>
+<p><a href="https://pic4.zhimg.com/80/v2-0cfa7b069221d4712fc548de565fa4bf_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-0cfa7b069221d4712fc548de565fa4bf_hd.jpg" class="lazyload"></a></p>
+<p>假设我们初始的点是A（图是函数投影到xoy平面的等高线图，颜色越深值越小），我们需要达到F<em>的地方。那最快的方法就是图中黄色线的路径，一次性就到达了，其实这个是牛顿优化法，但如果是高维的话，这个方法就不太高效了（因为需要求解矩阵的逆，这个不在这里讨论）。我们也可以按照红色所指示的路径来走。从A开始，先固定x，沿着y轴往让f(x, y)值减小的方向走到B点，然后固定y，沿着x轴往让f(x, y)值减小的方向走到C点，不断循环，直到到达F</em>。反正每次只要我们都往让f(x, y)值小的地方走就行了，这样脚踏实地，一步步走，每一步都使f(x, y)慢慢变小，总有一天，皇天不负有心人的。到达F*也是时间问题。到这里你可能会说，这红色线比黄色线贫富差距也太严重了吧。因为这里是二维的简单的情况嘛。如果是高维的情况，而且目标函数很复杂的话，再加上样本集很多，那么在梯度下降中，目标函数对所有αi求梯度或者在牛顿法中对矩阵求逆，都是很耗时的。这时候，如果W只对单个αi优化很快的时候，坐标下降法可能会更加高效。</p>
+<p>数学例题讲解</p>
+<p>下面以如下的优化问题为例：</p>
+<p><a href="https://pic1.zhimg.com/80/v2-e8e0fbf24641d2870e73afb37d5ea314_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-e8e0fbf24641d2870e73afb37d5ea314_hd.jpg" class="lazyload"></a></p>
+<p>在迭代的过程中，每次固定x2更新x1，在确定了x1的条件下，固定x1，更新x2。即每次迭代求解：</p>
+<p><a href="https://pic4.zhimg.com/80/v2-a7ca59f51128df8fda73c1bb5d526caf_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-a7ca59f51128df8fda73c1bb5d526caf_hd.jpg" class="lazyload"></a></p>
+<p>也即求解</p>
+<p><a href="https://pic4.zhimg.com/80/v2-752c0afacf65bc82834fdbda663d5563_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-752c0afacf65bc82834fdbda663d5563_hd.jpg" class="lazyload"></a></p>
+<p>，假设我们首先固定x2,来更新x1：</p>
+<p><a href="https://pic3.zhimg.com/80/v2-f5f023d363b7c98ad1e8bf5c0fef8056_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-f5f023d363b7c98ad1e8bf5c0fef8056_hd.jpg" class="lazyload"></a></p>
+<p>令其为0，得到：</p>
+<p><a href="https://pic4.zhimg.com/80/v2-33dec1f932c2d1e1fab44e765f71b47f_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-33dec1f932c2d1e1fab44e765f71b47f_hd.jpg" class="lazyload"></a></p>
+<p>再固定x1，得到：</p>
+<p><a href="https://pic1.zhimg.com/80/v2-78e53345eee05fe96b87d2fdd2d420e8_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-78e53345eee05fe96b87d2fdd2d420e8_hd.jpg" class="lazyload"></a></p>
+<p>令其为0，得到：</p>
+<p><a href="https://pic4.zhimg.com/80/v2-2fee9f423e18184370e88bdbd62e1647_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-2fee9f423e18184370e88bdbd62e1647_hd.jpg" class="lazyload"></a></p>
+<p>不断按照上述的过程，直到算法收敛。</p>
+<h1 id="七-smo可略过"><a class="markdownIt-Anchor" href="#七-smo可略过"></a> 七、SMO（可略过）</h1>
+<p>序列最小优化算法(Sequential minimal optimization, SMO)是一种用于解决SVM训练过程中所产生的优化问题的算法。 于1998年由John Platt发明。SMO的思想类似坐标上升算法，我们需要优化一系列的αα的值，我们每次选择尽量少的 <a href="https://www.zhihu.com/equation?tex=%5Calpha" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=%5Calpha" class="lazyload"></a> 来优化，不断迭代直到函数收敛到最优值。</p>
+<p>梯度提升算法采用增量完成迭代，SMO利用自身完成迭代，如 <a href="https://www.zhihu.com/equation?tex=x_%7Bn%7D%3Dx_%7Bn-1%7D%2Bx_%7Bn-1%7D%5E2" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=x_%7Bn%7D%3Dx_%7Bn-1%7D%2Bx_%7Bn-1%7D%5E2" class="lazyload"></a> 。</p>
+<p>目标函数：</p>
+<p><a href="https://pic1.zhimg.com/80/v2-471fb90bee8734bf5b96e0f2e4159c88_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-471fb90bee8734bf5b96e0f2e4159c88_hd.jpg" class="lazyload"></a></p>
+<p>假定存在一个β*=(β1,β2,…,βm)是我们最终的最优解，那么根据KKT条件我们可以计算出w和b的最优解，如下：</p>
+<p><a href="https://pic3.zhimg.com/80/v2-c6f6d5f7a46fa9ae8e34f02f2d01c32e_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-c6f6d5f7a46fa9ae8e34f02f2d01c32e_hd.jpg" class="lazyload"></a></p>
+<p>进而我们可以得到最终的分离超平面为:</p>
+<p><a href="https://pic2.zhimg.com/80/v2-8eb2de93cbd432ae34c2839b338b904d_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-8eb2de93cbd432ae34c2839b338b904d_hd.jpg" class="lazyload"></a></p>
+<p>拉格朗日乘子法和KKT的对偶互补条件为：</p>
+<p><a href="https://pic2.zhimg.com/80/v2-7a3db75451bdbc18cd60b661c09951e9_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-7a3db75451bdbc18cd60b661c09951e9_hd.jpg" class="lazyload"></a></p>
+<p>β、μ和C之间的关系为：</p>
+<p><a href="https://pic3.zhimg.com/80/v2-877f9fafcdd102240967047500c2b65e_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-877f9fafcdd102240967047500c2b65e_hd.jpg" class="lazyload"></a></p>
+<p>根据这个对偶互补条件，我们有如下关系式：</p>
+<p><a href="https://pic1.zhimg.com/80/v2-e08707660871b5c8b0b3e1fda541c164_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-e08707660871b5c8b0b3e1fda541c164_hd.jpg" class="lazyload"></a></p>
+<p>也就是说我们找出的最优的分割超平面必须满足下列的目标条件(g(x)):</p>
+<p><a href="https://pic4.zhimg.com/80/v2-2a8a996a29ec10417594a7e1d168d9f3_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-2a8a996a29ec10417594a7e1d168d9f3_hd.jpg" class="lazyload"></a></p>
+<p>拉格朗日对偶化要求的两个限制的初始条件为：</p>
+<p><a href="https://pic4.zhimg.com/80/v2-711f5cbe7a1707bfa223b5f01aa9a37f_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-711f5cbe7a1707bfa223b5f01aa9a37f_hd.jpg" class="lazyload"></a></p>
+<p>从而可以得到解决问题的思路如下：</p>
+<ul>
+<li>首先，初始化后一个β值，让它满足对偶问题的两个初始限制条件；</li>
+<li>然后不断优化这个β值，使得由它确定的分割超平面满足g(x)目标条件；而且在优化过程中，始终保证β值满足初始限制条件。</li>
+<li>备注：这个求解过程中，和传统的思路不太一样，不是对目标函数求最小值，而是让g(x)目标条件尽可能的满足。</li>
+</ul>
+<p>在这样一个过程中，到底如何优化这个β值呢？？？整理可以发现β值的优化必须遵循以下两个基本原则：</p>
+<ul>
+<li>每次优化的时候，必须同时优化β的两个分量；因为如果只优化一个分量的话，新的β值就没法满足初始限制条件中的等式约束条件了。</li>
+<li>每次优化的两个分量应该是违反g(x)目标条件比较多的。也就是说，本来应当是大于1的，yg(x)结果越是小于1就表示违反g(x)目标条件就越多。</li>
+</ul>
+<p>或者换一种思路来理解，因为目标函数中存在m个变量，直接优化比较难，利用启发式的方法/EM算法的思想，每次优化的时候，只优化两个变量，将其它的变量看成常数项，这样SMO算法就将一个复杂的优化算法转换为一个比较简单的两变量优化问题了。</p>
+<p><a href="https://pic1.zhimg.com/80/v2-65ef6118e70d770cc1158702600b5b14_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-65ef6118e70d770cc1158702600b5b14_hd.jpg" class="lazyload"></a></p>
+<p>认为β1、β2是变量，其它β值是常量，从而将目标函数转换如下(C是常数项)：</p>
+<p><a href="https://pic1.zhimg.com/80/v2-8f0adc4e3d95b422d2932ac0b61e4b14_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-8f0adc4e3d95b422d2932ac0b61e4b14_hd.jpg" class="lazyload"></a></p>
+<p>由于 <a href="https://www.zhihu.com/equation?tex=%5Cbeta_1y%5E%7B%281%29%7D%2B%5Cbeta_2y%5E%7B%282%29%7D%3Dk" target="_blank" rel="noopener" data-fancybox="group" data-caption="[公式]" class="fancybox"><img alt="[公式]" title="[公式]" data-src="https://www.zhihu.com/equation?tex=%5Cbeta_1y%5E%7B%281%29%7D%2B%5Cbeta_2y%5E%7B%282%29%7D%3Dk" class="lazyload"></a> ,并且y2=1，也就是我们使用β2来表示β1的值：</p>
+<p>将上式带入目标优化函数，就可以消去β1，从而只留下仅仅包含β2的式子。</p>
+<p><a href="https://pic4.zhimg.com/80/v2-341757aa247825ba112eb1e22f3b9b8b_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-341757aa247825ba112eb1e22f3b9b8b_hd.jpg" class="lazyload"></a></p>
+<p><a href="https://pic1.zhimg.com/80/v2-73dc77410e0e3689046625d4235464ec_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-73dc77410e0e3689046625d4235464ec_hd.jpg" class="lazyload"></a>V1,V2</p>
+<p><a href="https://pic3.zhimg.com/80/v2-bc7cbecd90e8b2bdd6a88eecbba638d2_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-bc7cbecd90e8b2bdd6a88eecbba638d2_hd.jpg" class="lazyload"></a></p>
+<p><a href="https://pic2.zhimg.com/80/v2-2934406d28667dbe5b2dbaef9fce4b9d_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-2934406d28667dbe5b2dbaef9fce4b9d_hd.jpg" class="lazyload"></a>消去beta1</p>
+<p><a href="https://pic3.zhimg.com/80/v2-3555ff104a22b4cf7b3516a74ef66e3e_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-3555ff104a22b4cf7b3516a74ef66e3e_hd.jpg" class="lazyload"></a></p>
+<p><a href="https://pic2.zhimg.com/80/v2-6cc402edcdb1dba8489a880f567ad865_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-6cc402edcdb1dba8489a880f567ad865_hd.jpg" class="lazyload"></a></p>
+<p>考虑β1和β2的取值限定范围，假定新求出来的β值是满足我们的边界限制的，即如下所示：</p>
+<p><a href="https://pic4.zhimg.com/80/v2-3ad3cc4186a75ac656b9c9a660809f93_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-3ad3cc4186a75ac656b9c9a660809f93_hd.jpg" class="lazyload"></a></p>
+<p>当y1=y2的时候，β1+β2=k； 由于β的限制条件，我们可以得到：</p>
+<p><a href="https://pic1.zhimg.com/80/v2-0cfc8d419c83c41d1b7026959a12c200_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-0cfc8d419c83c41d1b7026959a12c200_hd.jpg" class="lazyload"></a></p>
+<p><a href="https://pic4.zhimg.com/80/v2-74ce7b68817b967c97e0e7942ee83437_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-74ce7b68817b967c97e0e7942ee83437_hd.jpg" class="lazyload"></a></p>
+<p><a href="https://pic1.zhimg.com/80/v2-dfc7811742ce6fd78c6034157b3f1024_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-dfc7811742ce6fd78c6034157b3f1024_hd.jpg" class="lazyload"></a></p>
+<p><a href="https://pic3.zhimg.com/80/v2-4d2d313ed0adcd1205a7bda97eeb352e_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-4d2d313ed0adcd1205a7bda97eeb352e_hd.jpg" class="lazyload"></a></p>
+<p>可以发现SMO算法中，是选择两个合适的β变量做迭代，其它变量作为常量来进行优化的一个过程，那么这两个变量到底怎么选择呢???</p>
+<p>每次优化的时候，必须同时优化β的两个分量；因为如果只优化一个分量的话，新的β值就没法满足初始限制条件中的等式约束条件了。</p>
+<p>每次优化的两个分量应该是违反g(x)目标条件比较多的。也就是说，本来应当是大于等于1的，越是小于1违反g(x)目标条件就越多。</p>
+<p>SMO算法在选择第一个β变量的时候，需要选择在训练集上违反KKT条件最严重的样本点。一般情况下，先选择0<β<c的样本点(即支持向量)，只有当所有的支持向量都满足kkt条件的时候，才会选择其它样本点。因为此时违反kkt条件越严重，在经过一次优化后，会让变量β尽可能的发生变化，从而可以以更少的迭代次数让模型达到g(x)目标条件。< p>
+</c的样本点(即支持向量)，只有当所有的支持向量都满足kkt条件的时候，才会选择其它样本点。因为此时违反kkt条件越严重，在经过一次优化后，会让变量β尽可能的发生变化，从而可以以更少的迭代次数让模型达到g(x)目标条件。<></p><p><a href="https://pic4.zhimg.com/80/v2-28ab310c1eebe7b33e070e6067b5e15b_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-28ab310c1eebe7b33e070e6067b5e15b_hd.jpg" class="lazyload"></a></p>
+<p>在选择第一个变量β1后，在选择第二个变量β2的时候，希望能够按照优化后的β1和β2有尽可能多的改变来选择，也就是说让|E1-E2|足够的大，当E1为正的时候，选择最小的Ei作为E2；当E1为负的时候，选择最大的Ei作为E2。</p>
+<p>备注：如果选择的第二个变量不能够让目标函数有足够的下降，那么可以通过遍历所有样本点来作为β2，直到目标函数有足够的下降，如果都没有足够的下降的话，那么直接跳出循环，重新选择β1；</p>
+<p>在每次完成两个β变量的优化更新之后，需要重新计算阈值b和差值Ei。当0<β1new<c时，有：< p>
+</c时，有：<></p><p><a href="https://pic2.zhimg.com/80/v2-f786b8a13e569ea78098c3233af43bd5_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic2.zhimg.com/80/v2-f786b8a13e569ea78098c3233af43bd5_hd.jpg" class="lazyload"></a></p>
+<p>化简可得：</p>
+<p><a href="https://pic1.zhimg.com/80/v2-afb0a7abbd6bc3d3089ea59d2c0c9548_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-afb0a7abbd6bc3d3089ea59d2c0c9548_hd.jpg" class="lazyload"></a></p>
+<p><a href="https://pic1.zhimg.com/80/v2-36299a18d8454fe5fd5e9228b08604a4_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic1.zhimg.com/80/v2-36299a18d8454fe5fd5e9228b08604a4_hd.jpg" class="lazyload"></a></p>
+<p>同样的当β2的取值为: 0<β2<c的时候，我们也可以得到< p>
+</c的时候，我们也可以得到<></p><p><a href="https://pic4.zhimg.com/80/v2-078e311d32f22c21573b2c9ecde73d07_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-078e311d32f22c21573b2c9ecde73d07_hd.jpg" class="lazyload"></a></p>
+<p>最终计算出来的b为：</p>
+<p><a href="https://pic4.zhimg.com/80/v2-8976450ef72064d77efba0ac4649352f_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic4.zhimg.com/80/v2-8976450ef72064d77efba0ac4649352f_hd.jpg" class="lazyload"></a></p>
+<p>当更新计算阈值b后，就可以得到差值Ei为：</p>
+<p><a href="https://pic3.zhimg.com/80/v2-92670ad976295bc41da68c9100eee102_hd.jpg" target="_blank" rel="noopener" data-fancybox="group" data-caption="img" class="fancybox"><img alt="img" title="img" data-src="https://pic3.zhimg.com/80/v2-92670ad976295bc41da68c9100eee102_hd.jpg" class="lazyload"></a></p>
+</body></html></div></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">Eckle</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://yoursite.com/2020/01/06/SVM%E7%AE%97%E6%B3%95%E6%80%BB%E7%BB%93/">http://yoursite.com/2020/01/06/SVM%E7%AE%97%E6%B3%95%E6%80%BB%E7%BB%93/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://yoursite.com">Eckle的个人网站</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">-机器学习    </a></div><div class="post_share"><div class="social-share" data-image="/img/ML.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js"></script></div></div><div class="post-reward"><a class="reward-button button--primary button--animated"> <i class="fa fa-qrcode"></i> 打赏<div class="reward-main"><ul class="reward-all"><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/wechat.jpg" alt="微信"><div class="post-qr-code__desc">微信</div></li><li class="reward-item"><img class="lazyload post-qr-code__img" src="/img/alipay.jpg" alt="支付寶"><div class="post-qr-code__desc">支付寶</div></li></ul></div></a></div><nav class="pagination_post" id="pagination"><div class="next-post pull-full"><a href="/2020/01/06/%E4%B8%80%E3%80%811/"><img class="next_cover lazyload" data-src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/top_img/default.png" onerror="onerror=null;src='/img/404.jpg'"><div class="label">下一篇</div><div class="next_info"><span>一、1</span></div></a></div></nav><hr><div id="post-comment"><div class="comment_headling"><i class="fa fa-comments fa-fw" aria-hidden="true"></i><span> 评论</span></div><div class="vcomment" id="vcomment"></div><script src="https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js"></script><script>var notify = false == true ? true : false;
+var verify = false == true ? true : false;
+var GUEST_INFO = ['nick','mail','link'];
+var guest_info = 'nick,mail,link'.split(',').filter(function(item){
+  return GUEST_INFO.indexOf(item) > -1
+});
+guest_info = guest_info.length == 0 ? GUEST_INFO :guest_info;
+
+window.valine = new Valine({
+  el:'#vcomment',
+  notify:notify,
+  verify:verify,
+  appId:'O2mOsDYD5Hx3vwHP4i02Vahz-gzGzoHsz',
+  appKey:'kkskDORAC7MO6x0aNw0wMQJp',
+  placeholder:'Please leave your footprints',
+  avatar:'monsterid',
+  guest_info:guest_info,
+  pageSize:'10',
+  lang:'en',
+  recordIP: true
+});</script></div></div></main><footer id="footer" style="background-image: url(/img/ML.jpg)" data-type="photo"><div id="footer-wrap"><div class="copyright">&copy;2020 By Eckle</div><div class="framework-info"><span>驱动 </span><a href="http://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span class="footer-separator">|</span><span>主题 </span><a href="https://github.com/jerryc127/hexo-theme-butterfly" target="_blank" rel="noopener"><span>Butterfly</span></a></div><div class="footer_custom_text">Hi, welcome to my <a href="https://wowli-up.github.io/" target="_blank" rel="noopener">blog</a>!</div></div></footer></div><section class="rightside" id="rightside"><div id="rightside-config-hide"><i class="fa fa-book" id="readmode" title="阅读模式"></i><i class="fa fa-plus" id="font_plus" title="放大字体"></i><i class="fa fa-minus" id="font_minus" title="缩小字体"></i><a class="translate_chn_to_cht" id="translateLink" href="javascript:translatePage();" title="简繁转换" target="_self">繁</a><i class="darkmode fa fa-moon-o" id="darkmode" title="夜间模式"></i></div><div id="rightside-config-show"><div id="rightside_config" title="设置"><i class="fa fa-cog" aria-hidden="true"></i></div><a id="to_comment" href="#post-comment" title="直达评论"><i class="scroll_to_comment fa fa-comments">  </i></a><i class="fa fa-list-ul close" id="mobile-toc-button" title="目录" aria-hidden="true"></i><i class="fa fa-arrow-up" id="go-up" title="回到顶部" aria-hidden="true"></i></div></section><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script id="ribbon" src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/js/canvas-ribbon.js" size="150" alpha="0.6" zIndex="-1" mobile="true" data-click="false"></script><script id="ribbon_piao" mobile="true" src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/js/piao.js"></script><script id="canvas_nest" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/js/canvas-nest.js"></script><script src="https://cdn.jsdelivr.net/npm/activate-power-mode/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true; 
+document.body.addEventListener('input', POWERMODE);
+</script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page@latest/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/lazysizes@latest/lazysizes.min.js" async=""></script><script src="https://cdn.jsdelivr.net/gh/jerryc127/butterfly_cdn@2.1.0/js/click_heart.js"></script><div class="search-dialog" id="local-search"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章"></div></div></div><hr><div id="local-search-results"><div id="local-hits"></div><div id="local-stats"><div class="local-search-stats__hr" id="hr"><span>由</span> <a href="https://github.com/wzpan/hexo-generator-search" target="_blank" rel="noopener" style="color:#49B1F5;">hexo-generator-search</a>
+ <span>提供支持</span></div></div></div><span class="search-close-button"><i class="fa fa-times"></i></span></div><div class="search-mask"></div></body></html>
